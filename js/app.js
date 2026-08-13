@@ -4,6 +4,12 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --------------------------------------------------------------------------
+  // AUDIO & THEME CONTROLS INITIALIZATION
+  // --------------------------------------------------------------------------
+  const audioBtn = document.getElementById('audio-toggle-btn');
+  const themeBtn = document.getElementById('theme-toggle-btn');
+
   // Restore Theme preference
   const savedTheme = localStorage.getItem('animus_theme') || 'light';
   document.body.setAttribute('data-theme', savedTheme);
@@ -64,11 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
   runBootSequence();
 
   // --------------------------------------------------------------------------
-  // 2. AUDIO & THEME CONTROLS
+  // 2. AUDIO & THEME CONTROLS BINDINGS
   // --------------------------------------------------------------------------
-  const audioBtn = document.getElementById('audio-toggle-btn');
-  const themeBtn = document.getElementById('theme-toggle-btn');
-
   if (audioBtn) {
     updateAudioBtn();
     audioBtn.addEventListener('click', () => {
