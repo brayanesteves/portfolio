@@ -1,0 +1,322 @@
+/* ==========================================================================
+   ANIMUS 1.28 DESIGN SYSTEM & VISUAL ENGINE
+   Inspired by Assassin's Creed 1 Interface
+   Subject: Brayan Esteves - Software Architect
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Animus 1.28 Luminous White Theme (Default) */
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  --bg-hud: rgba(255, 255, 255, 0.85);
+  --bg-hud-hover: rgba(255, 255, 255, 0.95);
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+  --text-inverse: #ffffff;
+  
+  /* Glowing Animus Accents */
+  --animus-cyan: #00d2ff;
+  --animus-cyan-glow: rgba(0, 210, 255, 0.4);
+  --animus-cyan-bright: #00f0ff;
+  --animus-blue: #0284c7;
+  --animus-ice: #e0f2fe;
+  
+  --border-light: rgba(0, 210, 255, 0.25);
+  --border-strong: rgba(0, 210, 255, 0.6);
+  --border-subtle: rgba(148, 163, 184, 0.2);
+  
+  --shadow-hud: 0 10px 30px -10px rgba(0, 210, 255, 0.15), 0 4px 12px rgba(15, 23, 42, 0.05);
+  --shadow-glow: 0 0 15px rgba(0, 240, 255, 0.5);
+  
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-hud: 'Rajdhani', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  
+  --grid-pattern: radial-gradient(circle, rgba(0, 210, 255, 0.12) 1px, transparent 1px);
+  --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Abstergo Dark Theme Mode */
+[data-theme="dark"] {
+  --bg-primary: #090d16;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-hud: rgba(17, 24, 39, 0.85);
+  --bg-hud-hover: rgba(31, 41, 55, 0.95);
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-inverse: #090d16;
+  
+  --animus-cyan: #00f0ff;
+  --animus-cyan-glow: rgba(0, 240, 255, 0.35);
+  --border-light: rgba(0, 240, 255, 0.3);
+  --border-strong: rgba(0, 240, 255, 0.7);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  
+  --shadow-hud: 0 10px 30px -10px rgba(0, 240, 255, 0.2), 0 4px 20px rgba(0, 0, 0, 0.5);
+  --grid-pattern: radial-gradient(circle, rgba(0, 240, 255, 0.15) 1px, transparent 1px);
+}
+
+/* ==========================================================================
+   RESET & BASE STYLES
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--animus-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--animus-cyan-glow);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--animus-cyan-bright);
+}
+
+/* Background Canvas Layer */
+#animus-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Grid Overlay & Scanline Effects */
+.animus-grid-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: var(--grid-pattern);
+  background-size: 24px 24px;
+  z-index: -2;
+  opacity: 0.7;
+}
+
+.animus-scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0, 210, 255, 0.02) 50%,
+    rgba(0, 210, 255, 0.02)
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ==========================================================================
+   ANIMUS HUD BRACKETS & FRAME DECORATIONS
+   ========================================================================== */
+
+.hud-panel {
+  background: var(--bg-hud);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  position: relative;
+  box-shadow: var(--shadow-hud);
+  transition: var(--transition-fast);
+}
+
+.hud-panel::before,
+.hud-panel::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--animus-cyan);
+  border-style: solid;
+  pointer-events: none;
+  transition: var(--transition-fast);
+}
+
+.hud-panel::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.hud-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.hud-panel:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.25), var(--shadow-hud);
+}
+
+.hud-panel:hover::before,
+.hud-panel:hover::after {
+  width: 14px;
+  height: 14px;
+  border-color: var(--animus-cyan-bright);
+}
+
+/* Animus Header / Typography */
+.hud-title {
+  font-family: var(--font-hud);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-title .block-num {
+  font-family: var(--font-mono);
+  color: var(--animus-cyan);
+  font-size: 0.9em;
+  background: rgba(0, 210, 255, 0.1);
+  padding: 2px 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 2px;
+}
+
+.hud-tag {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--animus-cyan);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-tag::before {
+  content: '▶';
+  font-size: 0.6rem;
+}
+
+/* Interactive Clickable & Buttons */
+.animus-btn {
+  font-family: var(--font-hud);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  padding: 0.6rem 1.4rem;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-fast);
+  cursor: pointer !important;
+  text-decoration: none;
+}
+
+.animus-btn * {
+  cursor: pointer !important;
+}
+
+.animus-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+  transition: 0.4s;
+}
+
+.animus-btn:hover {
+  background: var(--animus-cyan);
+  color: #000000;
+  border-color: var(--animus-cyan-bright);
+  box-shadow: 0 0 15px var(--animus-cyan-glow);
+  transform: translateY(-2px);
+}
+
+.animus-btn:hover::after {
+  left: 100%;
+}
+
+.animus-btn-primary {
+  background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(2, 132, 199, 0.15));
+  border-color: var(--animus-cyan);
+}
+
+/* Animations */
+@keyframes animusPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px var(--animus-cyan)); }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 2px) }
+  40% { transform: translate(-2px, -2px) }
+  60% { transform: translate(2px, 2px) }
+  80% { transform: translate(2px, -2px) }
+  100% { transform: translate(0) }
+}
+
+.animus-pulse {
+  animation: animusPulse 3s infinite ease-in-out;
+}
+
+.glitch-hover:hover {
+  animation: glitch 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}

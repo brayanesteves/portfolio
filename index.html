@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brayan Esteves | Software Architect & Backend Specialist - Animus 1.28 Interface</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Portfolio profesional de Brayan Esteves - Arquitecto de Software, Especialista en Backend, Sistemas Distribuidos, GCP/AWS, Event-Driven, Clojure, Java, Kafka y Web3. Estilo Animus 1.28 (Assassin's Creed).">
+  <meta name="author" content="Brayan Esteves">
+  <meta name="keywords" content="Brayan Esteves, Software Architect, Backend Developer, Java, Clojure, Python, Kafka, GCP, Web3, Solidity, Venezuela">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/animus-theme.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-theme="light">
+
+  <!-- Canvas Background for Polygon Shards and Floating Grid -->
+  <canvas id="animus-canvas"></canvas>
+  <div class="animus-grid-bg"></div>
+  <div class="animus-scanline"></div>
+
+  <!-- ------------------------------------------------------------------------
+       0. BOOT & SYNCHRONIZATION OVERLAY
+       ------------------------------------------------------------------------ -->
+  <div id="boot-screen">
+    <div class="boot-logo">
+      <span class="boot-logo-icon"></span>
+      <span>ANIMUS 1.28</span>
+    </div>
+    <div class="boot-terminal">
+      <div id="boot-logs" class="boot-logs"></div>
+      <div class="boot-progress-bar">
+        <div id="boot-progress-fill" class="boot-progress-fill"></div>
+      </div>
+      <div class="boot-status">
+        <span>SUBJECT: BRAYAN_ESTEVES</span>
+        <span>SYNC: <strong id="boot-sync-val">0%</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------------------------------
+       1. ANIMUS HUD HEADER NAVIGATION
+       ------------------------------------------------------------------------ -->
+  <header class="animus-header">
+    <div class="header-container">
+      <a href="#hero" class="animus-brand">
+        <div class="brand-icon"></div>
+        <div class="brand-text">ANIMUS <span>// 1.28</span></div>
+      </a>
+
+      <nav>
+        <ul class="hud-nav">
+          <li class="nav-item"><a href="#hero" class="active"><span class="num">[01]</span> SUJETO</a></li>
+          <li class="nav-item"><a href="#skills"><span class="num">[02]</span> MATRIZ SKILLS</a></li>
+          <li class="nav-item"><a href="#experience"><span class="num">[03]</span> MEMORIAS</a></li>
+          <li class="nav-item"><a href="#projects"><span class="num">[04]</span> ARQUITECTURA</a></li>
+          <li class="nav-item"><a href="#credentials"><span class="num">[05]</span> PROTOCOLO</a></li>
+          <li class="nav-item"><a href="#contact"><span class="num">[06]</span> CANAL LINK</a></li>
+        </ul>
+      </nav>
+
+      <div class="hud-controls">
+        <button id="audio-toggle-btn" class="hud-icon-btn" title="Alternar Sonido Animus">
+          <span>[🔊 AUDIO ON]</span>
+        </button>
+        <button id="theme-toggle-btn" class="hud-icon-btn" title="Cambiar Modo Abstergo">
+          <span>[☀️ ANIMUS WHITE]</span>
+        </button>
+        <button class="hud-icon-btn open-console-trigger" title="Abrir Consola CLI (Apretá ~)">
+          <span>[>_ CLI]</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ------------------------------------------------------------------------
+       2. HERO SECTION / MEMORY BLOCK 01: SUBJECT IDENTIFICATION
+       ------------------------------------------------------------------------ -->
+  <section id="hero" class="hero-section">
+    <div class="hero-grid">
+      <div class="subject-info">
+        <div class="subject-badge">
+          <i class="fa-solid fa-satellite"></i>
+          <span>GENETIC MEMORY ACCESSED // SPREAD SYNC 100%</span>
+        </div>
+
+        <h1 class="subject-name">BRAYAN ESTEVES</h1>
+        <h2 class="subject-title">Arquitecto de Software | Especialista Backend & Sistemas Distribuidos</h2>
+
+        <p class="subject-summary">
+          Especializado en el diseño y desarrollo de plataformas transaccionales de alto volumen, arquitecturas 
+          <strong>Event-Driven con Apache Kafka (+100 tópicos)</strong>, microservicios reactivos en GCP/AWS y smart contracts Web3. 
+          Dominio multilenguaje avanzado en <strong>Java (11+ años), Clojure, Python, .NET, Rust, Ruby y Solidity</strong>.
+        </p>
+
+        <!-- Stats Metrics Bar -->
+        <div class="metrics-row">
+          <div class="metric-card hud-panel">
+            <div class="metric-val" data-target="11" data-suffix="+">0</div>
+            <div class="metric-lbl">Años Backend Java</div>
+          </div>
+          <div class="metric-card hud-panel">
+            <div class="metric-val" data-target="100" data-suffix="+">0</div>
+            <div class="metric-lbl">Tópicos Kafka</div>
+          </div>
+          <div class="metric-card hud-panel">
+            <div class="metric-val" data-target="15" data-suffix="+">0</div>
+            <div class="metric-lbl">Plataformas Cloud</div>
+          </div>
+          <div class="metric-card hud-panel">
+            <div class="metric-val" data-target="8" data-suffix="+">0</div>
+            <div class="metric-lbl">Lenguajes Mastered</div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+          <a href="#contact" class="animus-btn animus-btn-primary">
+            <i class="fa-solid fa-bolt"></i> INICIAR TRANSMISIÓN / CONTACTO
+          </a>
+          <a href="BrayanEsteves-HojaDeVida.md" download class="animus-btn">
+            <i class="fa-solid fa-file-arrow-down"></i> DESCARGAR CV (MD)
+          </a>
+          <button class="animus-btn open-console-trigger">
+            <i class="fa-solid fa-terminal"></i> ABRIR CONSOLA ANIMUS
+          </button>
+        </div>
+      </div>
+
+      <!-- Avatar Hologram Card -->
+      <div class="avatar-hud-card hud-panel">
+        <img src="assets/images/animus_avatar.jpg" alt="Brayan Esteves Animus Hologram">
+        <div class="hud-overlay-reticle"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------------
+       3. MEMORY BLOCK 02: NEURAL SKILLS MATRIX
+       ------------------------------------------------------------------------ -->
+  <section id="skills" class="section-wrapper">
+    <div class="hud-title" style="font-size: 1.8rem; margin-bottom: 1.5rem;">
+      <span class="block-num">BLOCK 02</span>
+      <span>MATRIZ DE HABILIDADES NEURALES</span>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="skills-filter-bar hud-panel" style="padding: 1rem;">
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-category="all">TODOS LOS NODOS</button>
+        <button class="filter-btn" data-category="backend">BACKEND & CORE</button>
+        <button class="filter-btn" data-category="distributed">SISTEMAS DISTRIBUIDOS</button>
+        <button class="filter-btn" data-category="cloud">CLOUD & DEVOPS</button>
+        <button class="filter-btn" data-category="blockchain">WEB3 & BLOCKCHAIN</button>
+        <button class="filter-btn" data-category="frontend">FRONTEND & DATABASES</button>
+      </div>
+
+      <input type="text" id="skills-search" class="skills-search-input" placeholder="🔍 Buscar tecnología (ej: Kafka, Java)...">
+    </div>
+
+    <div class="skills-grid">
+      <!-- Skill Cards -->
+      <div class="skill-card hud-panel" data-category="backend">
+        <div class="skill-header">
+          <div class="skill-name">Java Ecosystem</div>
+          <span class="skill-years">11+ AÑOS</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">Spring Boot</span>
+          <span class="skill-chip">Quarkus</span>
+          <span class="skill-chip">RxJava</span>
+          <span class="skill-chip">Vert.x</span>
+          <span class="skill-chip">Apache Camel</span>
+          <span class="skill-chip">Kotlin</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="distributed">
+        <div class="skill-header">
+          <div class="skill-name">Apache Kafka & Event-Driven</div>
+          <span class="skill-years">ENTERPRISE</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">+100 Tópicos Kafka</span>
+          <span class="skill-chip">Event-Carried Transfer</span>
+          <span class="skill-chip">Patrón Saga</span>
+          <span class="skill-chip">Baja Latencia</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="backend">
+        <div class="skill-header">
+          <div class="skill-name">Clojure & Prog. Funcional</div>
+          <span class="skill-years">SISTEMAS CONCURRENTES</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">Ring</span>
+          <span class="skill-chip">Compojure</span>
+          <span class="skill-chip">Integrant</span>
+          <span class="skill-chip">Procesamiento de Eventos</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="cloud">
+        <div class="skill-header">
+          <div class="skill-name">Google Cloud Platform (GCP)</div>
+          <span class="skill-years">CLOUD-NATIVE</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">GKE (Kubernetes)</span>
+          <span class="skill-chip">Cloud SQL</span>
+          <span class="skill-chip">IAM</span>
+          <span class="skill-chip">Docker</span>
+          <span class="skill-chip">CI/CD Pipelines</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="cloud">
+        <div class="skill-header">
+          <div class="skill-name">AWS & AI Solutions</div>
+          <span class="skill-years">SOLUTIONS DEV</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">Amazon Bedrock</span>
+          <span class="skill-chip">Amazon Connect</span>
+          <span class="skill-chip">Lambda / SNS</span>
+          <span class="skill-chip">CDK Modulares</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="blockchain">
+        <div class="skill-header">
+          <div class="skill-name">Web3 & Blockchain</div>
+          <span class="skill-years">SMART CONTRACTS</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">Solidity</span>
+          <span class="skill-chip">Smart Contracts</span>
+          <span class="skill-chip">Web3 Microservices</span>
+          <span class="skill-chip">Fintech DeFi</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="backend">
+        <div class="skill-header">
+          <div class="skill-name">Python & .NET</div>
+          <span class="skill-years">7+ AÑOS</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">FastAPI</span>
+          <span class="skill-chip">Django</span>
+          <span class="skill-chip">ASP.NET Core</span>
+          <span class="skill-chip">C# / Web APIs</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="frontend">
+        <div class="skill-header">
+          <div class="skill-name">Bases de Datos & Graph Engine</div>
+          <span class="skill-years">ADVANCED</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">PostgreSQL</span>
+          <span class="skill-chip">MongoDB</span>
+          <span class="skill-chip">gRQL Native Graph</span>
+          <span class="skill-chip">PL/SQL Oracle</span>
+        </div>
+      </div>
+
+      <div class="skill-card hud-panel" data-category="frontend">
+        <div class="skill-header">
+          <div class="skill-name">Frontend Ecosystem</div>
+          <span class="skill-years">FULLSTACK</span>
+        </div>
+        <div class="skill-tags">
+          <span class="skill-chip">React.js / Next.js</span>
+          <span class="skill-chip">Vue.js / Storybook</span>
+          <span class="skill-chip">TypeScript / Node.js</span>
+          <span class="skill-chip">Angular</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------------
+       4. MEMORY BLOCK 03: SEQUENCE OF MEMORIES (CAREER TIMELINE)
+       ------------------------------------------------------------------------ -->
+  <section id="experience" class="section-wrapper">
+    <div class="hud-title" style="font-size: 1.8rem; margin-bottom: 1.5rem;">
+      <span class="block-num">BLOCK 03</span>
+      <span>SECUENCIA DE MEMORIAS (EXPERIENCIA PROFESIONAL)</span>
+    </div>
+
+    <div class="timeline-container">
+      
+      <!-- Experience Item 1 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="exp-card hud-panel">
+          <div class="exp-header">
+            <div>
+              <div class="exp-role">Desarrollador Web3 - Contratos Inteligentes & Backend</div>
+              <div class="exp-company"><i class="fa-solid fa-cube"></i> Monetae.io (El Salvador)</div>
+            </div>
+            <span class="exp-date">Feb 2025 - Nov 2025 (10 meses)</span>
+          </div>
+          <ul class="exp-bullets">
+            <li>Diseño e implementación de microservicios backend robustos con Java y Spring Boot.</li>
+            <li>Desarrollo y auditoría de Smart Contracts utilizando Solidity en entornos blockchain de alta seguridad.</li>
+            <li>Integración de servicios backend Web3 con plataformas financieras descentralizadas.</li>
+            <li>Arquitectura distribuida para procesamiento optimizado de transacciones masivas.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Experience Item 2 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="exp-card hud-panel">
+          <div class="exp-header">
+            <div>
+              <div class="exp-role">Director de Tecnología Interino (CTO)</div>
+              <div class="exp-company"><i class="fa-solid fa-network-wired"></i> gRQL Engine</div>
+            </div>
+            <span class="exp-date">Ene 2024 - Presente (1 año 9 meses)</span>
+          </div>
+          <ul class="exp-bullets">
+            <li>Lideré la visión tecnológica para un motor de base de datos gráfica nativa, eliminando limitaciones SQL y controladores JDBC para conexiones directas al núcleo.</li>
+            <li>Diseñé la arquitectura distribuida del motor utilizando patrones Event-Driven con <strong>Apache Kafka</strong> para procesamiento desacoplado.</li>
+            <li>Definí flujos reactivos backend utilizando <strong>RxJava</strong> para procesamiento no bloqueante de baja latencia.</li>
+            <li>Planifiqué y ejecuté el despliegue cloud-native en <strong>Google Cloud Platform (GCP)</strong> optimizando escalabilidad horizontal.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Experience Item 3 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="exp-card hud-panel">
+          <div class="exp-header">
+            <div>
+              <div class="exp-role">Developer FullStack Senior (AWS Solutions)</div>
+              <div class="exp-company"><i class="fa-brands fa-aws"></i> Dinocloud Consulting (EEUU)</div>
+            </div>
+            <span class="exp-date">Ago 2025 - Oct 2025 (3 meses)</span>
+          </div>
+          <ul class="exp-bullets">
+            <li>Implementación de contact center inteligente para rastreo de paquetes en Amazon Connect integrando agentes multi-agente de <strong>Amazon Bedrock</strong>.</li>
+            <li>Diseño de prompts estructurados para agentes supervisores y especialistas optimizando la resolución en >80% de casos rutinarios.</li>
+            <li>Despliegue con AWS CDK para stacks modulares, SNS/Lambda para eventos y Guardrails para seguridad de datos.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Experience Item 4 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="exp-card hud-panel">
+          <div class="exp-header">
+            <div>
+              <div class="exp-role">Arquitecto de Software & Líder Técnico</div>
+              <div class="exp-company"><i class="fa-solid fa-car"></i> Moveapps (Cliente: Toyota Chile)</div>
+            </div>
+            <span class="exp-date">Mayo 2024 - Marzo 2025 (11 meses)</span>
+          </div>
+          <ul class="exp-bullets">
+            <li>Desarrollo de arquetipos en Spring Boot, Node.js y Quarkus para estándares empresariales.</li>
+            <li>Lideré la arquitectura de la aplicación Toyota Chile (Node.js, React Native, Expo) con reportes de robos en tiempo real, chat y notificaciones push.</li>
+            <li>Despliegue y operación de microservicios en Google Cloud Platform (GKE), Docker y Kubernetes con mensajería asíncrona Apache Kafka.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Experience Item 5 -->
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="exp-card hud-panel">
+          <div class="exp-header">
+            <div>
+              <div class="exp-role">CEO & Fundador | CTO</div>
+              <div class="exp-company"><i class="fa-solid fa-shield-halved"></i> Halcón Bit / Fenrirsoft</div>
+            </div>
+            <span class="exp-date">Ene 2021 - Feb 2025 (4 años 2 meses)</span>
+          </div>
+          <ul class="exp-bullets">
+            <li>Lideré desarrollo de soluciones backend (FastAPI, Django, Spring Boot), microservicios cloud-native en GCP y arquitecturas Event-Driven con Kafka.</li>
+            <li>Modernización de integraciones legacy hacia Camel Quarkus reduciendo tiempos de arranque y complejidad operativa.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------------
+       5. MEMORY BLOCK 04: ARCHITECTURAL NODES (FEATURED PROJECTS)
+       ------------------------------------------------------------------------ -->
+  <section id="projects" class="section-wrapper">
+    <div class="hud-title" style="font-size: 1.8rem; margin-bottom: 1.5rem;">
+      <span class="block-num">BLOCK 04</span>
+      <span>NODOS ARQUITECTÓNICOS (PROYECTOS CLAVE)</span>
+    </div>
+
+    <div class="projects-grid">
+      <div class="project-card hud-panel">
+        <div class="project-title">
+          <i class="fa-solid fa-diagram-project" style="color: var(--animus-cyan)"></i>
+          <span>Motor Graph DB gRQL</span>
+        </div>
+        <p class="project-desc">
+          Arquitectura distribuida de un motor de base de datos gráfica nativo sin conexiones relacionales JDBC tradicionales, respaldado por flujos asíncronos con Apache Kafka y procesamiento reactivo RxJava en GCP.
+        </p>
+        <div class="skill-tags">
+          <span class="skill-chip">Kafka</span>
+          <span class="skill-chip">RxJava</span>
+          <span class="skill-chip">GCP</span>
+          <span class="skill-chip">Distributed Systems</span>
+        </div>
+      </div>
+
+      <div class="project-card hud-panel">
+        <div class="project-title">
+          <i class="fa-solid fa-robot" style="color: var(--animus-cyan)"></i>
+          <span>AWS Bedrock Smart Center</span>
+        </div>
+        <p class="project-desc">
+          Contact center inteligente en Amazon Connect con arquitecturas multi-agente LLM utilizando Amazon Bedrock, desplegado con AWS CDK, Lambda y SNS.
+        </p>
+        <div class="skill-tags">
+          <span class="skill-chip">Amazon Bedrock</span>
+          <span class="skill-chip">Amazon Connect</span>
+          <span class="skill-chip">AWS CDK</span>
+          <span class="skill-chip">Python</span>
+        </div>
+      </div>
+
+      <div class="project-card hud-panel">
+        <div class="project-title">
+          <i class="fa-solid fa-coins" style="color: var(--animus-cyan)"></i>
+          <span>Plataforma Web3 Monetae.io</span>
+        </div>
+        <p class="project-desc">
+          Infraestructura de microservicios Web3 integrando smart contracts en Solidity con backend enterprise Java Spring Boot para procesamiento masivo de transacciones.
+        </p>
+        <div class="skill-tags">
+          <span class="skill-chip">Solidity</span>
+          <span class="skill-chip">Spring Boot</span>
+          <span class="skill-chip">Web3.js</span>
+          <span class="skill-chip">DeFi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------------
+       6. MEMORY BLOCK 05: CREDENTIALS & PROTOCOL
+       ------------------------------------------------------------------------ -->
+  <section id="credentials" class="section-wrapper">
+    <div class="hud-title" style="font-size: 1.8rem; margin-bottom: 1.5rem;">
+      <span class="block-num">BLOCK 05</span>
+      <span>CREDENCIALES Y PROTOCOLOS</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+      <div class="hud-panel" style="padding: 1.5rem;">
+        <h3 class="hud-title" style="font-size: 1.1rem; margin-bottom: 1rem;">
+          <i class="fa-solid fa-graduation-cap" style="color: var(--animus-cyan)"></i> FORMACIÓN ACADÉMICA
+        </h3>
+        <p><strong>Técnico Superior en Informática</strong></p>
+        <p class="text-muted" style="font-size: 0.9rem;">Instituto Universitario Tecnológico Venezuela (2011 - 2014)</p>
+      </div>
+
+      <div class="hud-panel" style="padding: 1.5rem;">
+        <h3 class="hud-title" style="font-size: 1.1rem; margin-bottom: 1rem;">
+          <i class="fa-solid fa-award" style="color: var(--animus-cyan)"></i> CERTIFICACIONES DESTACADAS
+        </h3>
+        <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted);">
+          <li>JavaScript Esencial & Full Stack Web Development</li>
+          <li>Curso de Introducción a la Programación</li>
+          <li>WhatsApp Automation Using Python</li>
+          <li>Desarrollo Web HTML5 & CSS3 Avanzado</li>
+        </ul>
+      </div>
+
+      <div class="hud-panel" style="padding: 1.5rem;">
+        <h3 class="hud-title" style="font-size: 1.1rem; margin-bottom: 1rem;">
+          <i class="fa-solid fa-language" style="color: var(--animus-cyan)"></i> IDIOMAS
+        </h3>
+        <p><strong>Español:</strong> Nativo</p>
+        <p><strong>Inglés:</strong> Nivel A2 (Hablar, Escribir, Leer, Escuchar)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------------
+       7. MEMORY BLOCK 06: TRANSMISSION LINK / CONTACT
+       ------------------------------------------------------------------------ -->
+  <section id="contact" class="section-wrapper" style="margin-bottom: 5rem;">
+    <div class="hud-title" style="font-size: 1.8rem; margin-bottom: 1.5rem;">
+      <span class="block-num">BLOCK 06</span>
+      <span>TRANSMISIÓN DE SEÑAL & CONTACTO</span>
+    </div>
+
+    <div class="contact-grid">
+      <a href="https://wa.me/584149904852" target="_blank" class="contact-card hud-panel">
+        <div class="contact-icon"><i class="fa-brands fa-whatsapp"></i></div>
+        <div class="contact-info">
+          <div class="label">WHATSAPP / MOBILE</div>
+          <div class="value">+58 414 9904852</div>
+        </div>
+      </a>
+
+      <a href="mailto:brayan.esteves93@gmail.com" class="contact-card hud-panel">
+        <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+        <div class="contact-info">
+          <div class="label">EMAIL DIRECTO</div>
+          <div class="value">brayan.esteves93@gmail.com</div>
+        </div>
+      </a>
+
+      <a href="https://www.linkedin.com/in/brayanesteves93" target="_blank" class="contact-card hud-panel">
+        <div class="contact-icon"><i class="fa-brands fa-linkedin-in"></i></div>
+        <div class="contact-info">
+          <div class="label">LINKEDIN PROFILE</div>
+          <div class="value">brayanesteves93</div>
+        </div>
+      </a>
+
+      <a href="https://github.com/brayanesteves" target="_blank" class="contact-card hud-panel">
+        <div class="contact-icon"><i class="fa-brands fa-github"></i></div>
+        <div class="contact-info">
+          <div class="label">GITHUB REPOSITORIES</div>
+          <div class="value">github.com/brayanesteves</div>
+        </div>
+      </a>
+
+      <a href="https://torre.co/brayanesteves93?r=A0QQXHK9" target="_blank" class="contact-card hud-panel">
+        <div class="contact-icon"><i class="fa-solid fa-tower-cell"></i></div>
+        <div class="contact-info">
+          <div class="label">TORRE.CO</div>
+          <div class="value">brayanesteves93</div>
+        </div>
+      </a>
+
+      <a href="https://www.instagram.com/brayan.esteves93/" target="_blank" class="contact-card hud-panel">
+        <div class="contact-icon"><i class="fa-brands fa-instagram"></i></div>
+        <div class="contact-info">
+          <div class="label">INSTAGRAM</div>
+          <div class="value">@brayan.esteves93</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------------
+       8. ANIMUS CONSOLE CLI TERMINAL MODAL
+       ------------------------------------------------------------------------ -->
+  <div id="console-modal" class="console-modal">
+    <div class="console-window">
+      <div class="console-header">
+        <span>ANIMUS 1.28 CONSOLE // COMMAND TERMINAL</span>
+        <button id="close-console-btn" style="background: none; border: none; color: var(--animus-cyan); cursor: pointer;">[X]</button>
+      </div>
+      <div id="console-body" class="console-body">
+        <p>ANIMUS 1.28 CONSOLE [SYSTEM ONLINE]</p>
+        <p class="text-muted">Escribe <span style="color: var(--animus-cyan)">help</span> para ver los comandos disponibles.</p>
+      </div>
+      <div class="console-input-row">
+        <span class="console-prompt">SUBJECT@ANIMUS:~$</span>
+        <input type="text" id="console-input" class="console-input" placeholder="Escribe un comando (ej: help, skills, exp)..." autofocus>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/animus-canvas.js"></script>
+  <script src="js/animus-audio.js"></script>
+  <script src="js/animus-console.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
