@@ -1,20 +1,9 @@
 /* ==========================================================================
-   ANIMUS 1.28 APPLICATION CORE LOGIC
-   Handles UI interactions, Boot Sequence, Filtering, Modals & Audio HUD
+   ANIMUS 2.0 APPLICATION ENGINE
+   Handles boot loading, scroll animations, audio, skill tabs and metrics.
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --------------------------------------------------------------------------
-  // AUDIO & THEME CONTROLS INITIALIZATION
-  // --------------------------------------------------------------------------
-  const audioBtn = document.getElementById('audio-toggle-btn');
-  const themeBtn = document.getElementById('theme-toggle-btn');
-
-  // Restore Theme preference
-  const savedTheme = localStorage.getItem('animus_theme') || 'light';
-  document.body.setAttribute('data-theme', savedTheme);
-  updateThemeIcon(savedTheme);
-
   // --------------------------------------------------------------------------
   // 1. BOOT SEQUENCE ANIMATION
   // --------------------------------------------------------------------------
@@ -24,11 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const bootSyncVal = document.getElementById('boot-sync-val');
 
   const bootMessages = [
-    "[SYS_INIT] Connecting to Animus Core 1.28...",
-    "[DNA_SCAN] Extracting subject sequence Brayan_Esteves...",
-    "[MEMORY_BLOCK_01] Reading Software Architecture & Distributed Systems...",
+    "[SYS_INIT] Initializing Animus Intelligence System 2.0...",
+    "[IDENTITY_SCAN] Authenticating subject profile Brayan_Esteves...",
+    "[MEMORY_BLOCK_01] Software Architecture & Distributed Systems loaded.",
     "[MEMORY_BLOCK_02] Indexing Java, Clojure, Kafka, Web3 & Cloud stack...",
-    "[SYNCHRONIZING] Memory stability: 100% OK."
+    "[SYSTEM_ONLINE] Neural links active. Ready."
   ];
 
   let logIdx = 0;
@@ -36,13 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function runBootSequence() {
     const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 18) + 12;
+      progress += Math.floor(Math.random() * 20) + 15;
       if (progress > 100) progress = 100;
 
       if (bootFill) bootFill.style.width = `${progress}%`;
       if (bootSyncVal) bootSyncVal.textContent = `${progress}%`;
 
-      if (logIdx < bootMessages.length && Math.random() > 0.3) {
+      if (logIdx < bootMessages.length && Math.random() > 0.2) {
         const line = document.createElement('div');
         line.className = 'log-line';
         line.textContent = bootMessages[logIdx];
@@ -58,20 +47,45 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           if (bootScreen) {
             bootScreen.classList.add('fade-out');
-            setTimeout(() => bootScreen.style.display = 'none', 800);
+            setTimeout(() => bootScreen.style.display = 'none', 700);
           }
           if (window.AnimusAudio) window.AnimusAudio.playSyncPulse();
           animateMetrics();
-        }, 500);
+          initScrollReveals();
+        }, 400);
       }
-    }, 180);
+    }, 150);
   }
 
   runBootSequence();
 
   // --------------------------------------------------------------------------
-  // 2. AUDIO & THEME CONTROLS BINDINGS
+  // 2. AUDIO & MOBILE MENU CONTROLS
   // --------------------------------------------------------------------------
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const sysNav = document.querySelector('.sys-nav');
+
+  if (mobileMenuBtn && sysNav) {
+    mobileMenuBtn.addEventListener('click', () => {
+      const isActive = sysNav.classList.toggle('mobile-active');
+      const icon = mobileMenuBtn.querySelector('i');
+      if (icon) {
+        icon.className = isActive ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+      }
+      if (window.AnimusAudio) window.AnimusAudio.playClick();
+    });
+
+    // Close menu when clicking any nav link
+    document.querySelectorAll('.sys-nav .nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        sysNav.classList.remove('mobile-active');
+        const icon = mobileMenuBtn.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-bars';
+      });
+    });
+  }
+
+  const audioBtn = document.getElementById('audio-toggle-btn');
   if (audioBtn) {
     updateAudioBtn();
     audioBtn.addEventListener('click', () => {
@@ -85,30 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!audioBtn || !window.AnimusAudio) return;
     const isMuted = window.AnimusAudio.getMuteState();
     audioBtn.innerHTML = isMuted 
-      ? '<span>[🔇 MUTED]</span>' 
+      ? '<span>[🔇 AUDIO OFF]</span>' 
       : '<span>[🔊 AUDIO ON]</span>';
   }
 
-  if (themeBtn) {
-    themeBtn.addEventListener('click', () => {
-      const current = document.body.getAttribute('data-theme') || 'light';
-      const next = current === 'light' ? 'dark' : 'light';
-      document.body.setAttribute('data-theme', next);
-      localStorage.setItem('animus_theme', next);
-      updateThemeIcon(next);
-      if (window.AnimusAudio) window.AnimusAudio.playClick();
-    });
-  }
-
-  function updateThemeIcon(theme) {
-    if (!themeBtn) return;
-    themeBtn.innerHTML = theme === 'dark' 
-      ? '<span>[🌙 ABSTERGO DARK]</span>' 
-      : '<span>[☀️ ANIMUS WHITE]</span>';
-  }
-
-  // Attach audio hover/click listeners to interactive elements
-  document.querySelectorAll('a, button, .hud-panel, .filter-btn, .exp-card').forEach(el => {
+  // Attach subtle audio triggers on hover/click
+  document.querySelectorAll('a, button, .dark-card, .tab-btn, .contact-node').forEach(el => {
     el.addEventListener('mouseenter', () => {
       if (window.AnimusAudio) window.AnimusAudio.playHover();
     });
@@ -118,15 +114,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --------------------------------------------------------------------------
-  // 3. SKILLS MATRIX FILTER & SEARCH
+  // 3. NEURAL SKILL MATRIX TAB FILTERING & SEARCH
   // --------------------------------------------------------------------------
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  const skillCards = document.querySelectorAll('.skill-card');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const nodeCards = document.querySelectorAll('.node-card');
   const searchInput = document.getElementById('skills-search');
 
-  filterBtns.forEach(btn => {
+  tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
+      tabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
       const cat = btn.getAttribute('data-category');
@@ -136,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      const activeCat = document.querySelector('.filter-btn.active')?.getAttribute('data-category') || 'all';
+      const activeCat = document.querySelector('.tab-btn.active')?.getAttribute('data-category') || 'all';
       filterSkills(activeCat, e.target.value);
     });
   }
@@ -144,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function filterSkills(category, query) {
     const q = query.toLowerCase().trim();
 
-    skillCards.forEach(card => {
+    nodeCards.forEach(card => {
       const cardCat = card.getAttribute('data-category');
       const cardText = card.textContent.toLowerCase();
 
@@ -160,10 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --------------------------------------------------------------------------
-  // 4. METRICS ANIMATION
+  // 4. SYSTEM METRICS COUNTER ANIMATION
   // --------------------------------------------------------------------------
   function animateMetrics() {
-    document.querySelectorAll('.metric-val').forEach(el => {
+    document.querySelectorAll('.metric-num-val').forEach(el => {
       const target = parseInt(el.getAttribute('data-target') || '0', 10);
       let count = 0;
       const step = Math.max(1, Math.floor(target / 25));
@@ -173,15 +169,31 @@ document.addEventListener('DOMContentLoaded', () => {
           count = target;
           clearInterval(timer);
         }
-        const suffix = el.getAttribute('data-suffix') || '';
-        el.textContent = `${count}${suffix}`;
+        el.textContent = count;
       }, 40);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 5. INTERSECTION OBSERVER FOR SCROLL REVEALS
+  // --------------------------------------------------------------------------
+  function initScrollReveals() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+      observer.observe(el);
     });
   }
 
   // Active section link highlighter on scroll
   const sections = document.querySelectorAll('section[id]');
-  const navLinks = document.querySelectorAll('.nav-item a');
+  const navLinks = document.querySelectorAll('.nav-link');
 
   window.addEventListener('scroll', () => {
     let current = '';

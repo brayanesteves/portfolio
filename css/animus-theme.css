@@ -1,72 +1,52 @@
 /* ==========================================================================
-   ANIMUS 1.28 DESIGN SYSTEM & VISUAL ENGINE
-   Inspired by Assassin's Creed 1 Interface
+   ANIMUS 2.0 DESIGN SYSTEM // BATCOMPUTER & SCI-FI ENTERPRISE (2026)
    Subject: Brayan Esteves - Software Architect
+   Stack: Pure HTML5, CSS3, Vanilla JS
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Animus 1.28 Luminous White Theme (Default) */
-  --bg-primary: #f0f4f8;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #e2e8f0;
-  --bg-hud: rgba(255, 255, 255, 0.85);
-  --bg-hud-hover: rgba(255, 255, 255, 0.95);
+  /* Batcomputer / Animus 2.0 Deep Obsidian Dark Base */
+  --bg-body: #050608;
+  --bg-surface: #080a0d;
+  --bg-card: #0d1014;
+  --bg-card-hover: #12161b;
+  --bg-card-active: #181d23;
+  --bg-glass: rgba(13, 16, 20, 0.75);
   
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-dim: #64748b;
-  --text-inverse: #ffffff;
+  /* Text & Hierarchies */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-dim: #475569;
   
-  /* Glowing Animus Accents */
-  --animus-cyan: #00d2ff;
-  --animus-cyan-glow: rgba(0, 210, 255, 0.4);
-  --animus-cyan-bright: #00f0ff;
-  --animus-blue: #0284c7;
-  --animus-ice: #e0f2fe;
+  /* Cyan / Energy Accent (Used SPARINGLY for indicators, numbers & active states) */
+  --cyan-energy: #00f0ff;
+  --cyan-glow: rgba(0, 240, 255, 0.25);
+  --cyan-dim: rgba(0, 240, 255, 0.12);
+  --cyan-border: rgba(0, 240, 255, 0.35);
   
-  --border-light: rgba(0, 210, 255, 0.25);
-  --border-strong: rgba(0, 210, 255, 0.6);
-  --border-subtle: rgba(148, 163, 184, 0.2);
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
   
-  --shadow-hud: 0 10px 30px -10px rgba(0, 210, 255, 0.15), 0 4px 12px rgba(15, 23, 42, 0.05);
-  --shadow-glow: 0 0 15px rgba(0, 240, 255, 0.5);
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', var(--font-sans);
+  --font-mono: 'JetBrains Mono', monospace;
   
-  --font-mono: 'Share Tech Mono', monospace;
-  --font-hud: 'Rajdhani', sans-serif;
-  --font-sans: 'Inter', sans-serif;
-  
-  --grid-pattern: radial-gradient(circle, rgba(0, 210, 255, 0.12) 1px, transparent 1px);
+  /* Layout & Transitions */
+  --max-width: 1320px;
   --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Abstergo Dark Theme Mode */
-[data-theme="dark"] {
-  --bg-primary: #090d16;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1f2937;
-  --bg-hud: rgba(17, 24, 39, 0.85);
-  --bg-hud-hover: rgba(31, 41, 55, 0.95);
-  
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-  --text-inverse: #090d16;
-  
-  --animus-cyan: #00f0ff;
-  --animus-cyan-glow: rgba(0, 240, 255, 0.35);
-  --border-light: rgba(0, 240, 255, 0.3);
-  --border-strong: rgba(0, 240, 255, 0.7);
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  
-  --shadow-hud: 0 10px 30px -10px rgba(0, 240, 255, 0.2), 0 4px 20px rgba(0, 0, 0, 0.5);
-  --grid-pattern: radial-gradient(circle, rgba(0, 240, 255, 0.15) 1px, transparent 1px);
+  --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }
 
 /* ==========================================================================
-   RESET & BASE STYLES
+   RESET & BASE ENGINE
    ========================================================================== */
 
 * {
@@ -79,11 +59,12 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  background-color: var(--bg-body);
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-main);
+  background-color: var(--bg-body);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
@@ -92,27 +73,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar Customization */
+/* Custom Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: var(--bg-body);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--animus-cyan);
+  background: #1e293b;
   border-radius: 2px;
-  box-shadow: 0 0 8px var(--animus-cyan-glow);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--animus-cyan-bright);
+  background: var(--cyan-energy);
+  box-shadow: 0 0 10px var(--cyan-glow);
 }
 
-/* Background Canvas Layer */
+/* Canvas & Background Atmosphere */
 #animus-canvas {
   position: fixed;
   top: 0;
@@ -123,200 +104,172 @@ body {
   pointer-events: none;
 }
 
-/* Grid Overlay & Scanline Effects */
-.animus-grid-bg {
+.system-vignette {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: var(--grid-pattern);
-  background-size: 24px 24px;
+  background: radial-gradient(circle at 50% 30%, transparent 20%, rgba(5, 6, 8, 0.7) 80%, rgba(5, 6, 8, 0.95) 100%);
+  pointer-events: none;
   z-index: -2;
-  opacity: 0.7;
 }
 
-.animus-scanline {
+.system-grid-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0),
-    rgba(255,255,255,0) 50%,
-    rgba(0, 210, 255, 0.02) 50%,
-    rgba(0, 210, 255, 0.02)
-  );
-  background-size: 100% 4px;
-  pointer-events: none;
-  z-index: 999;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: -3;
+  opacity: 0.6;
 }
 
 /* ==========================================================================
-   ANIMUS HUD BRACKETS & FRAME DECORATIONS
+   REFINED TYPOGRAPHY & HUD METADATA
    ========================================================================== */
 
-.hud-panel {
-  background: var(--bg-hud);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-light);
-  border-radius: 4px;
-  position: relative;
-  box-shadow: var(--shadow-hud);
-  transition: var(--transition-fast);
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
-.hud-panel::before,
-.hud-panel::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-color: var(--animus-cyan);
-  border-style: solid;
-  pointer-events: none;
-  transition: var(--transition-fast);
-}
-
-.hud-panel::before {
-  top: -1px;
-  left: -1px;
-  border-width: 2px 0 0 2px;
-}
-
-.hud-panel::after {
-  bottom: -1px;
-  right: -1px;
-  border-width: 0 2px 2px 0;
-}
-
-.hud-panel:hover {
-  border-color: var(--border-strong);
-  box-shadow: 0 0 20px rgba(0, 210, 255, 0.25), var(--shadow-hud);
-}
-
-.hud-panel:hover::before,
-.hud-panel:hover::after {
-  width: 14px;
-  height: 14px;
-  border-color: var(--animus-cyan-bright);
-}
-
-/* Animus Header / Typography */
-.hud-title {
-  font-family: var(--font-hud);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-main);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.hud-title .block-num {
+.font-mono {
   font-family: var(--font-mono);
-  color: var(--animus-cyan);
-  font-size: 0.9em;
-  background: rgba(0, 210, 255, 0.1);
-  padding: 2px 6px;
-  border: 1px solid var(--border-light);
-  border-radius: 2px;
 }
 
-.hud-tag {
+/* Section Header Badges */
+.section-tag {
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--animus-cyan);
+  letter-spacing: 2px;
+  color: var(--cyan-energy);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: 0.75rem;
 }
 
-.hud-tag::before {
-  content: '▶';
-  font-size: 0.6rem;
+.section-tag::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background-color: var(--cyan-energy);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--cyan-energy);
 }
 
-/* Interactive Clickable & Buttons */
-.animus-btn {
-  font-family: var(--font-hud);
-  font-size: 0.9rem;
-  font-weight: 600;
+.section-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+/* Status Indicator Dot */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--cyan-energy);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 10px var(--cyan-energy);
+  animation: pulseDot 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 14px var(--cyan-energy); }
+}
+
+/* ==========================================================================
+   DARK SYSTEM BUTTONS & INTERACTIVE ELEMENTS
+   ========================================================================== */
+
+.btn-sys {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  background: var(--bg-secondary);
-  color: var(--text-main);
-  border: 1px solid var(--border-light);
-  padding: 0.6rem 1.4rem;
-  border-radius: 2px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 0.75rem 1.6rem;
+  border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  position: relative;
-  overflow: hidden;
+  text-decoration: none;
   transition: var(--transition-fast);
   cursor: pointer !important;
-  text-decoration: none;
 }
 
-.animus-btn * {
+.btn-sys * {
   cursor: pointer !important;
 }
 
-.animus-btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
-  transition: 0.4s;
-}
-
-.animus-btn:hover {
-  background: var(--animus-cyan);
-  color: #000000;
-  border-color: var(--animus-cyan-bright);
-  box-shadow: 0 0 15px var(--animus-cyan-glow);
+.btn-sys:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--cyan-border);
+  color: var(--text-primary);
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.12);
   transform: translateY(-2px);
 }
 
-.animus-btn:hover::after {
-  left: 100%;
+.btn-sys-primary {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: var(--cyan-border);
+  color: var(--cyan-energy);
 }
 
-.animus-btn-primary {
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(2, 132, 199, 0.15));
-  border-color: var(--animus-cyan);
+.btn-sys-primary:hover {
+  background: var(--cyan-energy);
+  color: #050608;
+  border-color: var(--cyan-energy);
+  box-shadow: 0 0 20px var(--cyan-glow);
 }
 
-/* Animations */
-@keyframes animusPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; filter: drop-shadow(0 0 8px var(--animus-cyan)); }
+/* Dark Glass Cards */
+.dark-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes glitch {
-  0% { transform: translate(0) }
-  20% { transform: translate(-2px, 2px) }
-  40% { transform: translate(-2px, -2px) }
-  60% { transform: translate(2px, 2px) }
-  80% { transform: translate(2px, -2px) }
-  100% { transform: translate(0) }
+.dark-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
 }
 
-.animus-pulse {
-  animation: animusPulse 3s infinite ease-in-out;
+/* Scroll Animation Utilities */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glitch-hover:hover {
-  animation: glitch 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
