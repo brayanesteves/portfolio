@@ -1,261 +1,93 @@
-/* ==========================================================================
-   ANIMUS 2.0 CLI CONSOLE & MULTIVERSE ACTION ENGINE
-   ========================================================================== */
+/**
+ * @file animus-console.js
+ * @description TerminalUI & MultiverseEngine Classes. Handles the CLI Modal and the 2D Top-Down Game Engine.
+ */
 
-(function () {
-  const consoleModal = document.getElementById('console-modal');
-  const consoleWindow = document.querySelector('.console-window');
-  const consoleBody = document.getElementById('console-body');
-  const consoleInput = document.getElementById('console-input');
-  const closeConsoleBtn = document.getElementById('close-console-btn');
-  const openConsoleBtns = document.querySelectorAll('.open-console-trigger');
-  
-  const megaWrap = document.getElementById('megaman-arcade-wrap');
-  const closeMegaBtn = document.getElementById('close-megaman-btn');
-  const megaCanvas = document.getElementById('megaman-canvas');
-
-  if (!consoleModal || !consoleInput) return;
-
-  let isGameActive = false;
-  let gameLoopId = null;
-
-  // --------------------------------------------------------------------------
-  // 1. CONSOLE OPEN / CLOSE & LOADING ANIMATION
-  // --------------------------------------------------------------------------
-  function toggleConsole() {
-    const isOpening = !consoleModal.classList.contains('active');
+class MultiverseEngine {
+  constructor(canvasId, wrapperId, closeBtnId) {
+    this.canvas = document.getElementById(canvasId);
+    this.wrapper = document.getElementById(wrapperId);
+    this.closeBtn = document.getElementById(closeBtnId);
+    this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
     
-    if (isOpening) {
-      consoleModal.classList.add('active');
-      if (consoleWindow) consoleWindow.classList.add('loading');
-      
-      if (window.AnimusAudio) AnimusAudio.playSyncPulse();
+    this.isGameActive = false;
+    this.gameLoopId = null;
+    this.currentTheme = 'megaman';
+    this.keys = {};
+    this.camera = { x: 0, y: 0 };
+    this.score = 0;
+    this.gamePhase = 'play'; // play, over, win
 
-      // Simulated CLI link establishing loading sequence
-      setTimeout(() => {
-        if (consoleWindow) consoleWindow.classList.remove('loading');
-        consoleInput.focus();
-      }, 600);
-    } else {
-      consoleModal.classList.remove('active');
-      if (isGameActive) stopEasterEggGame();
+    this.WORLD_W = 1200;
+    this.WORLD_H = 800;
+
+    this.player = null;
+    this.entities = [];
+    this.walls = [];
+    this.zones = [];
+    this.particles = [];
+    this.bullets = [];
+
+    this.bindStaticEvents();
+  }
+
+  bindStaticEvents() {
+    if (this.closeBtn) {
+      this.closeBtn.addEventListener('click', () => this.stop());
     }
   }
 
-  openConsoleBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleConsole();
-    });
-  });
+  start(theme) {
+    if (!this.canvas || !this.ctx || !this.wrapper) return;
+    this.currentTheme = theme || 'megaman';
+    this.isGameActive = true;
+    this.wrapper.style.display = 'flex';
+    this.gamePhase = 'play';
+    this.score = 0;
+    this.keys = {};
 
-  if (closeConsoleBtn) {
-    closeConsoleBtn.addEventListener('click', toggleConsole);
-  }
+    this.hdDown = (e) => { if(this.isGameActive) { this.keys[e.key] = true; if(e.key===' ') e.preventDefault(); } };
+    this.hdUp = (e) => { if(this.isGameActive) this.keys[e.key] = false; };
 
-  // Hotkeys ~ and Escape
-  window.addEventListener('keydown', (e) => {
-    if (e.key === '`' || e.key === '~') {
-      e.preventDefault();
-      toggleConsole();
-    } else if (e.key === 'Escape') {
-      if (isGameActive) {
-        stopEasterEggGame();
-      } else if (consoleModal.classList.contains('active')) {
-        toggleConsole();
-      }
-    }
-  });
+    window.addEventListener('keydown', this.hdDown);
+    window.addEventListener('keyup', this.hdUp);
 
-  function printLine(text, className = '') {
-    const p = document.createElement('p');
-    p.className = `console-line ${className}`;
-    p.innerHTML = text;
-    consoleBody.appendChild(p);
-    consoleBody.scrollTop = consoleBody.scrollHeight;
-  }
-
-  // --------------------------------------------------------------------------
-  // 2. COMMAND HANDLER
-  // --------------------------------------------------------------------------
-  function handleCommand(cmdRaw) {
-    const cmd = cmdRaw.trim().toLowerCase();
-    const primary = cmd.split(' ')[0];
-
-    printLine(`<span style="color: var(--cyan-energy)">SUBJECT@ANIMUS:~$</span> ${cmdRaw}`);
-
-    if (window.AnimusAudio) AnimusAudio.playClick();
-
-    switch (primary) {
-      case 'help':
-        printLine('==================================================', 'text-muted');
-        printLine('ANIMUS 2.0 SYSTEM COMMAND PROTOCOLS:');
-        printLine('  <span style="color: var(--cyan-energy)">bio</span> / <span style="color: var(--cyan-energy)">subject</span>  - Displays professional architect summary');
-        printLine('  <span style="color: var(--cyan-energy)">skills</span> [query]  - Queries technical skill matrix');
-        printLine('  <span style="color: var(--cyan-energy)">exp</span>             - Lists career memory sequence');
-        printLine('  <span style="color: var(--cyan-energy)">projects</span>        - Shows architectural node highlights');
-        printLine('  <span style="color: var(--cyan-energy)">contact</span>         - Transmission channels & contact info');
-        printLine('  <span style="color: var(--cyan-energy)">megaman</span> / <span style="color: var(--cyan-energy)">assassin</span> / <span style="color: var(--cyan-energy)">batman</span> / <span style="color: var(--cyan-energy)">transformers</span> / <span style="color: var(--cyan-energy)">pacificrim</span> / <span style="color: var(--cyan-energy)">crossover</span> - [GAME] Easter Eggs');
-        printLine('  <span style="color: var(--cyan-energy)">sync</span>            - Triggers memory re-sync sequence');
-        printLine('  <span style="color: var(--cyan-energy)">clear</span>           - Clears terminal output');
-        printLine('==================================================', 'text-muted');
-        break;
-
-      case 'bio':
-      case 'subject':
-        printLine('<strong>SUBJECT: BRAYAN ESTEVES</strong>');
-        printLine('ROLE: Software Architect | Backend & Distributed Systems Specialist');
-        printLine('LOCATION: Caracas, Venezuela');
-        printLine('EXPERIENCE: 11+ years Java/Backend, GCP/AWS, Clojure, Kafka, Solidity, .NET, Python, Node.js');
-        break;
-
-      case 'skills':
-        printLine('<strong>NEURAL SKILL MATRIX:</strong>');
-        printLine('- Backend: Java (Spring Boot, Quarkus), Clojure, Python (FastAPI, Django), .NET, Ruby, Solidity');
-        printLine('- Architecture: Event-Driven (Kafka 100+ topics), RxJava, Microservices, Hexagonal');
-        printLine('- Cloud & DevOps: GCP (GKE, Cloud SQL), AWS (Bedrock, Connect), Docker, Kubernetes, CI/CD');
-        printLine('- Databases: PostgreSQL, MongoDB, gRQL Graph Database Engine');
-        break;
-
-      case 'exp':
-        printLine('<strong>MEMORY SEQUENCE (EXPERIENCE):</strong>');
-        printLine('1. 2025: Monetae.io - Web3 Developer & Smart Contracts');
-        printLine('2. 2024-Pres: gRQL Engine - Interim Chief Technology Officer (CTO)');
-        printLine('3. 2025: Dinocloud - Senior FullStack AWS Solutions (Bedrock Multi-Agent)');
-        printLine('4. 2024-2025: Moveapps - Software Architect & Tech Lead (Toyota Chile)');
-        printLine('5. 2021-2025: HalcÃ³n Bit / Fenrirsoft - CEO, Founder & CTO');
-        break;
-
-      case 'contact':
-        printLine('<strong>TRANSMISSION CHANNELS:</strong>');
-        printLine('- WhatsApp: +584149904852');
-        printLine('- Email: brayan.esteves93@gmail.com');
-        printLine('- LinkedIn: linkedin.com/in/brayanesteves93');
-        printLine('- GitHub: github.com/brayanesteves');
-        break;
-
-      case 'megaman':
-      case 'mega':
-      case 'game':
-        printLine('[GAME] <span style="color: #00f0ff">LAUNCHING MEGA MAN PROTOCOL... GET EQUIPPED!</span>');
-        startEasterEggGame('megaman');
-        break;
-
-      case 'assassin':
-      case 'assassinscreed':
-        printLine('ðŸ¦… <span style="color: #fff">SYNCHRONIZING MEMORY: ASSASSIN... REQUIESCAT IN PACE.</span>');
-        startEasterEggGame('assassin');
-        break;
-
-      case 'batman':
-        printLine('ðŸ¦‡ <span style="color: #f59e0b">BATCOMPUTER UPLINK ESTABLISHED... I AM VENGEANCE.</span>');
-        startEasterEggGame('batman');
-        break;
-      
-      case 'transformers':
-        printLine('ðŸ¤– <span style="color: #ef4444">AUTOBOTS, ROLL OUT!</span>');
-        startEasterEggGame('transformers');
-        break;
-      
-      case 'pacificrim':
-        printLine('ðŸŒŠ <span style="color: #00f0ff">JAEGER NEURAL HANDSHAKE INITIATED... DRIFT COMPATIBLE.</span>');
-        startEasterEggGame('pacificrim');
-        break;
-      
-      case 'crossover':
-        printLine('[!] <span style="color: #ff00ff">WARNING: MULTIVERSE ANOMALY DETECTED. INITIATING ULTIMATE CROSSOVER!</span>');
-        startEasterEggGame('crossover');
-        break;
-
-      case 'sync':
-        printLine('Synchronizing memory fragments...', 'animus-pulse');
-        if (window.AnimusAudio) AnimusAudio.playSyncPulse();
-        break;
-
-      case 'clear':
-        consoleBody.innerHTML = '';
-        printLine('ANIMUS 2.0 CONSOLE [SYSTEM ONLINE]. Type <span style="color: var(--cyan-energy)">help</span> for protocols.');
-        break;
-
-      default:
-        if (cmd !== '') {
-          printLine(`Unrecognized command: '${cmd}'. Type <span style="color: var(--cyan-energy)">help</span> or <span style="color: var(--cyan-energy)">megaman</span>.`, 'text-muted');
-        }
-        break;
-    }
-  }
-
-  consoleInput.addEventListener('keydown', (e) => {
-    if (window.AnimusAudio) AnimusAudio.playTyping();
-    if (e.key === 'Enter') {
-      const val = consoleInput.value;
-      consoleInput.value = '';
-      handleCommand(val);
-    }
-  });
-
-  if (closeMegaBtn) {
-    closeMegaBtn.addEventListener('click', stopEasterEggGame);
-  }
-
-  // --------------------------------------------------------------------------
-  // 3. TOP-DOWN ADVENTURE ENGINE (MULTIVERSE)
-  // --------------------------------------------------------------------------
-  let ctx = megaCanvas ? megaCanvas.getContext('2d') : null;
-  let player, entities, walls, zones, particles;
-  let currentTheme = 'megaman';
-  let keys = {};
-  let camera = {x: 0, y: 0};
-  let score = 0;
-  let gamePhase = 'play'; // play, over, win
-
-  const WORLD_W = 1200;
-  const WORLD_H = 800;
-
-  function startEasterEggGame(theme) {
-    if (!megaCanvas || !ctx) return;
-    currentTheme = theme || 'megaman';
-    isGameActive = true;
-    megaWrap.style.display = 'flex';
-    gamePhase = 'play';
-    score = 0;
+    this.buildWorld();
     
-    // Reset inputs
-    keys = {};
-    window.addEventListener('keydown', hdDown);
-    window.addEventListener('keyup', hdUp);
+    if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+    this.loop();
+  }
 
-    buildWorld(currentTheme);
+  stop() {
+    this.isGameActive = false;
+    if (this.wrapper) this.wrapper.style.display = 'none';
+    if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+    window.removeEventListener('keydown', this.hdDown);
+    window.removeEventListener('keyup', this.hdUp);
     
-    if (gameLoopId) cancelAnimationFrame(gameLoopId);
-    runGameLoop();
+    // Notify terminal
+    if (window.TerminalInstance) {
+       window.TerminalInstance.printLine('🎮 Protocol closed.', 'text-muted');
+    }
   }
 
-  function stopEasterEggGame() {
-    isGameActive = false;
-    if (megaWrap) megaWrap.style.display = 'none';
-    if (gameLoopId) cancelAnimationFrame(gameLoopId);
-    window.removeEventListener('keydown', hdDown);
-    window.removeEventListener('keyup', hdUp);
-    printLine('ðŸŽ® Protocol closed.', 'text-muted');
+  rectIntersect(r1, r2) {
+    let w1 = r1.w || r1.width || 0;
+    let h1 = r1.h || r1.height || 0;
+    let w2 = r2.w || r2.width || 0;
+    let h2 = r2.h || r2.height || 0;
+    return !(r2.x > r1.x + w1 || r2.x + w2 < r1.x || r2.y > r1.y + h1 || r2.y + h2 < r1.y);
   }
 
-  function rectIntersect(r1, r2) {
-    return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);
-  }
+  buildWorld() {
+    this.entities = [];
+    this.walls = [];
+    this.zones = [];
+    this.particles = [];
+    this.bullets = [];
 
-  function hdDown(e) { if(isGameActive) { keys[e.key] = true; if(e.key===' ') e.preventDefault(); } }
-  function hdUp(e) { if(isGameActive) keys[e.key] = false; }
-
-  function buildWorld(t) {
-    entities = [];
-    walls = [];
-    zones = []; 
-    particles = [];
-
-    // Player default
-    player = {
-       x: WORLD_W/2, y: WORLD_H/2, w: 20, h: 20,
+    this.player = {
+       x: this.WORLD_W/2, y: this.WORLD_H/2, w: 20, h: 20,
        vx: 0, vy: 0, speed: 4,
        hp: 10, maxHp: 10,
        color: '#00f0ff',
@@ -264,49 +96,46 @@
     };
 
     // Border walls
-    walls.push({x:0, y:0, w:WORLD_W, h:10});
-    walls.push({x:0, y:WORLD_H-10, w:WORLD_W, h:10});
-    walls.push({x:0, y:0, w:10, h:WORLD_H});
-    walls.push({x:WORLD_W-10, y:0, w:10, h:WORLD_H});
+    this.walls.push({x:0, y:0, w:this.WORLD_W, h:10});
+    this.walls.push({x:0, y:this.WORLD_H-10, w:this.WORLD_W, h:10});
+    this.walls.push({x:0, y:0, w:10, h:this.WORLD_H});
+    this.walls.push({x:this.WORLD_W-10, y:0, w:10, h:this.WORLD_H});
 
     // Theme specifics
-    if (t === 'transformers') {
-       player.color = '#ef4444'; // Optimus
-       player.speed = 4;
-       // add some city block walls
-       walls.push({x: 200, y: 200, w: 100, h: 100});
-       walls.push({x: 800, y: 500, w: 200, h: 50});
-       spawnEnemies(10, 'decepticon');
-    } else if (t === 'assassin') {
-       player.color = '#ffffff';
-       player.speed = 3;
-       // Add stealth bushes (zones)
-       zones.push({x: 300, y: 300, w: 150, h: 150, type: 'bush', color: '#14532d'});
-       zones.push({x: 700, y: 150, w: 100, h: 200, type: 'bush', color: '#14532d'});
-       spawnEnemies(8, 'templar');
-    } else if (t === 'batman') {
-       player.color = '#1f2937';
-       player.speed = 4;
-       spawnEnemies(15, 'thug');
-    } else if (t === 'pacificrim') {
-       player.color = '#3b82f6';
-       player.speed = 2; // slow heavy
-       player.w = 40; player.h = 40;
-       player.hp = 30; player.maxHp = 30;
-       spawnEnemies(3, 'kaiju'); // few big enemies
+    if (this.currentTheme === 'transformers') {
+       this.player.color = '#ef4444';
+       this.player.speed = 4;
+       this.walls.push({x: 200, y: 200, w: 100, h: 100});
+       this.walls.push({x: 800, y: 500, w: 200, h: 50});
+       this.spawnEnemies(10, 'decepticon');
+    } else if (this.currentTheme === 'assassin') {
+       this.player.color = '#ffffff';
+       this.player.speed = 3;
+       this.zones.push({x: 300, y: 300, w: 150, h: 150, type: 'bush', color: '#14532d'});
+       this.zones.push({x: 700, y: 150, w: 100, h: 200, type: 'bush', color: '#14532d'});
+       this.spawnEnemies(8, 'templar');
+    } else if (this.currentTheme === 'batman') {
+       this.player.color = '#1f2937';
+       this.player.speed = 4;
+       this.spawnEnemies(15, 'thug');
+    } else if (this.currentTheme === 'pacificrim') {
+       this.player.color = '#3b82f6';
+       this.player.speed = 2; 
+       this.player.w = 40; this.player.h = 40;
+       this.player.hp = 30; this.player.maxHp = 30;
+       this.spawnEnemies(3, 'kaiju'); 
     } else {
-       // crossover / megaman
-       player.color = '#00f0ff';
-       spawnEnemies(12, 'met');
+       this.player.color = '#00f0ff';
+       this.spawnEnemies(12, 'met');
     }
   }
 
-  function spawnEnemies(count, type) {
+  spawnEnemies(count, type) {
      for(let i=0; i<count; i++) {
-        entities.push({
+        this.entities.push({
            type: 'enemy', eType: type,
-           x: Math.random() * (WORLD_W-100) + 50,
-           y: Math.random() * (WORLD_H-100) + 50,
+           x: Math.random() * (this.WORLD_W-100) + 50,
+           y: Math.random() * (this.WORLD_H-100) + 50,
            w: (type==='kaiju')? 60 : 20,
            h: (type==='kaiju')? 60 : 20,
            hp: (type==='kaiju')? 20 : (type==='templar'? 3 : 2),
@@ -317,223 +146,377 @@
      }
   }
 
-  function runGameLoop() {
-    if (!isGameActive) return;
+  loop() {
+    if (!this.isGameActive) return;
 
-    if (gamePhase === 'play') {
-       // Player movement
-       let dx = 0, dy = 0;
-       if (keys['ArrowUp'] || keys['w'] || keys['W']) dy -= 1;
-       if (keys['ArrowDown'] || keys['s'] || keys['S']) dy += 1;
-       if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx -= 1;
-       if (keys['ArrowRight'] || keys['d'] || keys['D']) dx += 1;
-
-       // Normalize
-       let len = Math.sqrt(dx*dx + dy*dy);
-       if (len > 0) { dx /= len; dy /= len; }
-
-       // Transformations / States
-       let curSpeed = player.speed;
-       if (currentTheme === 'transformers' && keys['Shift']) {
-          player.state = 'car';
-          curSpeed = 10;
-          player.color = '#3b82f6'; // car color
-       } else {
-          player.state = 'normal';
-          if(currentTheme === 'transformers') player.color = '#ef4444';
-       }
-
-       let nextX = player.x + dx * curSpeed;
-       let nextY = player.y + dy * curSpeed;
-
-       // Wall collisions
-       let pRect = {x: nextX, y: nextY, w: player.w, h: player.h};
-       let hitWall = false;
-       for(let w of walls) {
-          if (rectIntersect(pRect, w)) { hitWall = true; break; }
-       }
-       if (!hitWall) { player.x = nextX; player.y = nextY; }
-       
-       if (dx > 0) player.facing = 'right';
-       if (dx < 0) player.facing = 'left';
-       if (dy > 0) player.facing = 'down';
-       if (dy < 0) player.facing = 'up';
-
-       // Stealth mechanic
-       let inBush = false;
-       if (currentTheme === 'assassin') {
-          for(let z of zones) {
-             if (z.type === 'bush' && rectIntersect(player, z)) inBush = true;
-          }
-          player.state = inBush ? 'stealth' : 'normal';
-       }
-
-       // Attack Mechanics
-       if (player.attackCooldown > 0) player.attackCooldown--;
-       if (keys[' '] && player.attackCooldown <= 0) {
-          player.attackCooldown = (currentTheme === 'pacificrim') ? 40 : 15;
-          let atkRect = {x: player.x, y: player.y, w: 20, h: 20};
-          let range = (currentTheme === 'batman') ? 100 : (currentTheme === 'pacificrim') ? 50 : 30;
-          if (currentTheme === 'transformers') range = 150; // Shoot
-          
-          if(player.facing === 'right') { atkRect.w = range; atkRect.x += player.w; }
-          if(player.facing === 'left') { atkRect.w = range; atkRect.x -= range; }
-          if(player.facing === 'down') { atkRect.h = range; atkRect.y += player.h; }
-          if(player.facing === 'up') { atkRect.h = range; atkRect.y -= range; }
-
-          // Add attack particle
-          particles.push({x: atkRect.x, y: atkRect.y, w: atkRect.w, h: atkRect.h, life: 10, color: '#fff'});
-          
-          // Check hits
-          for(let e of entities) {
-             if (e.type === 'enemy' && rectIntersect(atkRect, e)) {
-                let dmg = (currentTheme === 'pacificrim') ? 10 : (inBush ? 10 : 1); // assassination does 10
-                e.hp -= dmg;
-                e.state = 'alert';
-             }
-          }
-          if (window.AnimusAudio) window.AnimusAudio.playClick();
-       }
-
-       // Car collision (Transformers)
-       if (player.state === 'car') {
-          for(let e of entities) {
-             if (e.type === 'enemy' && rectIntersect(player, e)) {
-                e.hp -= 5;
-             }
-          }
-       }
-
-       // Entity Logic
-       for (let i = entities.length - 1; i >= 0; i--) {
-          let e = entities[i];
-          if (e.hp <= 0) {
-             score += 100;
-             entities.splice(i, 1);
-             continue;
-          }
-
-          // AI
-          let dist = Math.hypot(player.x - e.x, player.y - e.y);
-          if (dist < 300 && player.state !== 'stealth') {
-             e.state = 'alert';
-          } else {
-             e.state = 'patrol';
-          }
-
-          if (e.state === 'alert') {
-             let ex = (player.x - e.x) / dist;
-             let ey = (player.y - e.y) / dist;
-             let nx = e.x + ex * e.speed;
-             let ny = e.y + ey * e.speed;
-             
-             // Move if no wall
-             let eRect = {x: nx, y: ny, w: e.w, h: e.h};
-             let ewHit = false;
-             for(let w of walls) if(rectIntersect(eRect, w)) ewHit = true;
-             if(!ewHit) { e.x = nx; e.y = ny; }
-
-             // Attack player
-             if (dist < e.w + 10 && player.dashTimer <= 0) {
-                player.hp -= (e.eType === 'kaiju') ? 5 : 1;
-                player.dashTimer = 30; // invuln
-             }
-          }
-       }
-       
-       if (player.dashTimer > 0) player.dashTimer--;
-       if (player.hp <= 0) gamePhase = 'over';
-       if (entities.length === 0) gamePhase = 'win';
-
-       // Camera follow
-       camera.x = player.x - megaCanvas.width / 2;
-       camera.y = player.y - megaCanvas.height / 2;
-       camera.x = Math.max(0, Math.min(camera.x, WORLD_W - megaCanvas.width));
-       camera.y = Math.max(0, Math.min(camera.y, WORLD_H - megaCanvas.height));
+    if (this.gamePhase === 'play') {
+       this.updatePlayState();
     }
 
-    // DRAW
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, megaCanvas.width, megaCanvas.height);
-    
-    ctx.save();
-    ctx.translate(-camera.x, -camera.y);
-
-    // Draw Grid / Ground
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 1;
-    for(let i=0; i<WORLD_W; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,WORLD_H); ctx.stroke(); }
-    for(let i=0; i<WORLD_H; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(WORLD_W,i); ctx.stroke(); }
-
-    // Draw Zones
-    for(let z of zones) {
-       ctx.fillStyle = z.color;
-       ctx.globalAlpha = 0.5;
-       ctx.fillRect(z.x, z.y, z.w, z.h);
-       ctx.globalAlpha = 1.0;
-    }
-
-    // Draw Walls
-    ctx.fillStyle = '#333';
-    for(let w of walls) ctx.fillRect(w.x, w.y, w.w, w.h);
-
-    // Draw Particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-       let p = particles[i];
-       ctx.fillStyle = p.color;
-       ctx.fillRect(p.x, p.y, p.w, p.h);
-       p.life--;
-       if(p.life <= 0) particles.splice(i, 1);
-    }
-
-    // Draw Enemies
-    for(let e of entities) {
-       ctx.fillStyle = e.color;
-       ctx.fillRect(e.x, e.y, e.w, e.h);
-       // HP bar
-       ctx.fillStyle = '#f00';
-       ctx.fillRect(e.x, e.y - 8, e.w * (e.hp / (e.eType==='kaiju'?20:3)), 4);
-    }
-
-    // Draw Player
-    if (player.dashTimer % 4 < 2) {
-       ctx.fillStyle = player.color;
-       if (player.state === 'stealth') ctx.globalAlpha = 0.4;
-       if (player.state === 'car') {
-          ctx.fillRect(player.x, player.y, player.w*1.5, player.h*0.8);
-       } else {
-          ctx.fillRect(player.x, player.y, player.w, player.h);
-       }
-       ctx.globalAlpha = 1.0;
-    }
-
-    ctx.restore();
-
-    // HUD
-    ctx.fillStyle = '#fff';
-    ctx.font = '14px "JetBrains Mono", monospace';
-    ctx.fillText(`PROTOCOL: ${currentTheme.toUpperCase()} | SCORE: ${score} | ENEMIES: ${entities.length}`, 15, 25);
-    ctx.fillStyle = '#f00';
-    ctx.fillText(`HP: ${player.hp}/${player.maxHp}`, 15, 45);
-    
-    if (currentTheme === 'transformers') ctx.fillText(`[SHIFT] = Transform into Car`, 15, 65);
-    if (currentTheme === 'assassin') ctx.fillText(`Hide in green zones for stealth!`, 15, 65);
-
-    if (gamePhase === 'over') {
-       ctx.fillStyle = 'rgba(0,0,0,0.8)';
-       ctx.fillRect(0,0,megaCanvas.width, megaCanvas.height);
-       ctx.fillStyle = '#f00';
-       ctx.font = '24px "JetBrains Mono", monospace';
-       ctx.fillText('MISSION FAILED', megaCanvas.width/2 - 90, 120);
-    }
-    if (gamePhase === 'win') {
-       ctx.fillStyle = 'rgba(0,0,0,0.8)';
-       ctx.fillRect(0,0,megaCanvas.width, megaCanvas.height);
-       ctx.fillStyle = '#0f0';
-       ctx.font = '24px "JetBrains Mono", monospace';
-       ctx.fillText('MISSION COMPLETE!', megaCanvas.width/2 - 100, 120);
-    }
-
-    gameLoopId = requestAnimationFrame(runGameLoop);
+    this.draw();
+    this.gameLoopId = requestAnimationFrame(() => this.loop());
   }
-})();
+
+  updatePlayState() {
+     let dx = 0, dy = 0;
+     if (this.keys['ArrowUp'] || this.keys['w'] || this.keys['W']) dy -= 1;
+     if (this.keys['ArrowDown'] || this.keys['s'] || this.keys['S']) dy += 1;
+     if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) dx -= 1;
+     if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) dx += 1;
+
+     let len = Math.sqrt(dx*dx + dy*dy);
+     if (len > 0) { dx /= len; dy /= len; }
+
+     let curSpeed = this.player.speed;
+     if (this.currentTheme === 'transformers' && this.keys['Shift']) {
+        this.player.state = 'car';
+        curSpeed = 10;
+        this.player.color = '#3b82f6';
+     } else {
+        this.player.state = 'normal';
+        if(this.currentTheme === 'transformers') this.player.color = '#ef4444';
+     }
+
+     let nextX = this.player.x + dx * curSpeed;
+     let nextY = this.player.y + dy * curSpeed;
+
+     let pRect = {x: nextX, y: nextY, w: this.player.w, h: this.player.h};
+     let hitWall = false;
+     for(let w of this.walls) {
+        if (this.rectIntersect(pRect, w)) { hitWall = true; break; }
+     }
+     if (!hitWall) { this.player.x = nextX; this.player.y = nextY; }
+     
+     if (dx > 0) this.player.facing = 'right';
+     if (dx < 0) this.player.facing = 'left';
+     if (dy > 0) this.player.facing = 'down';
+     if (dy < 0) this.player.facing = 'up';
+
+     let inBush = false;
+     if (this.currentTheme === 'assassin') {
+        for(let z of this.zones) {
+           if (z.type === 'bush' && this.rectIntersect(this.player, z)) inBush = true;
+        }
+        this.player.state = inBush ? 'stealth' : 'normal';
+     }
+
+     if (this.player.attackCooldown > 0) this.player.attackCooldown--;
+     if (this.keys[' '] && this.player.attackCooldown <= 0) {
+        this.player.attackCooldown = (this.currentTheme === 'pacificrim') ? 40 : 15;
+        let atkRect = {x: this.player.x, y: this.player.y, w: 20, h: 20};
+        let range = (this.currentTheme === 'batman') ? 100 : (this.currentTheme === 'pacificrim') ? 50 : 30;
+        if (this.currentTheme === 'transformers') range = 150;
+        
+        if(this.player.facing === 'right') { atkRect.w = range; atkRect.x += this.player.w; }
+        if(this.player.facing === 'left') { atkRect.w = range; atkRect.x -= range; }
+        if(this.player.facing === 'down') { atkRect.h = range; atkRect.y += this.player.h; }
+        if(this.player.facing === 'up') { atkRect.h = range; atkRect.y -= range; }
+
+        this.particles.push({x: atkRect.x, y: atkRect.y, w: atkRect.w, h: atkRect.h, life: 10, color: '#fff'});
+        
+        for(let e of this.entities) {
+           if (e.type === 'enemy' && this.rectIntersect(atkRect, e)) {
+              let dmg = (this.currentTheme === 'pacificrim') ? 10 : (inBush ? 10 : 1);
+              e.hp -= dmg;
+              e.state = 'alert';
+           }
+        }
+        if (window.AnimusAudio) window.AnimusAudio.playClick();
+     }
+
+     if (this.player.state === 'car') {
+        for(let e of this.entities) {
+           if (e.type === 'enemy' && this.rectIntersect(this.player, e)) {
+              e.hp -= 5;
+           }
+        }
+     }
+
+     for (let i = this.entities.length - 1; i >= 0; i--) {
+        let e = this.entities[i];
+        if (e.hp <= 0) {
+           this.score += 100;
+           this.entities.splice(i, 1);
+           continue;
+        }
+
+        let dist = Math.hypot(this.player.x - e.x, this.player.y - e.y);
+        if (dist < 300 && this.player.state !== 'stealth') {
+           e.state = 'alert';
+        } else {
+           e.state = 'patrol';
+        }
+
+        if (e.state === 'alert') {
+           let ex = (this.player.x - e.x) / dist;
+           let ey = (this.player.y - e.y) / dist;
+           let nx = e.x + ex * e.speed;
+           let ny = e.y + ey * e.speed;
+           
+           let eRect = {x: nx, y: ny, w: e.w, h: e.h};
+           let ewHit = false;
+           for(let w of this.walls) if(this.rectIntersect(eRect, w)) ewHit = true;
+           if(!ewHit) { e.x = nx; e.y = ny; }
+
+           if (dist < e.w + 10 && this.player.dashTimer <= 0) {
+              this.player.hp -= (e.eType === 'kaiju') ? 5 : 1;
+              this.player.dashTimer = 30;
+           }
+        }
+     }
+     
+     if (this.player.dashTimer > 0) this.player.dashTimer--;
+     if (this.player.hp <= 0) this.gamePhase = 'over';
+     if (this.entities.length === 0) this.gamePhase = 'win';
+
+     this.camera.x = this.player.x - this.canvas.width / 2;
+     this.camera.y = this.player.y - this.canvas.height / 2;
+     this.camera.x = Math.max(0, Math.min(this.camera.x, this.WORLD_W - this.canvas.width));
+     this.camera.y = Math.max(0, Math.min(this.camera.y, this.WORLD_H - this.canvas.height));
+  }
+
+  draw() {
+    this.ctx.fillStyle = '#0a0a0a';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    this.ctx.save();
+    this.ctx.translate(-this.camera.x, -this.camera.y);
+
+    this.ctx.strokeStyle = '#1a1a1a';
+    this.ctx.lineWidth = 1;
+    for(let i=0; i<this.WORLD_W; i+=50) { this.ctx.beginPath(); this.ctx.moveTo(i,0); this.ctx.lineTo(i,this.WORLD_H); this.ctx.stroke(); }
+    for(let i=0; i<this.WORLD_H; i+=50) { this.ctx.beginPath(); this.ctx.moveTo(0,i); this.ctx.lineTo(this.WORLD_W,i); this.ctx.stroke(); }
+
+    for(let z of this.zones) {
+       this.ctx.fillStyle = z.color;
+       this.ctx.globalAlpha = 0.5;
+       this.ctx.fillRect(z.x, z.y, z.w, z.h);
+       this.ctx.globalAlpha = 1.0;
+    }
+
+    this.ctx.fillStyle = '#333';
+    for(let w of this.walls) this.ctx.fillRect(w.x, w.y, w.w, w.h);
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+       let p = this.particles[i];
+       this.ctx.fillStyle = p.color;
+       this.ctx.fillRect(p.x, p.y, p.w, p.h);
+       p.life--;
+       if(p.life <= 0) this.particles.splice(i, 1);
+    }
+
+    for(let e of this.entities) {
+       this.ctx.fillStyle = e.color;
+       this.ctx.fillRect(e.x, e.y, e.w, e.h);
+       this.ctx.fillStyle = '#f00';
+       this.ctx.fillRect(e.x, e.y - 8, e.w * (e.hp / (e.eType==='kaiju'?20:3)), 4);
+    }
+
+    if (this.player.dashTimer % 4 < 2) {
+       this.ctx.fillStyle = this.player.color;
+       if (this.player.state === 'stealth') this.ctx.globalAlpha = 0.4;
+       if (this.player.state === 'car') {
+          this.ctx.fillRect(this.player.x, this.player.y, this.player.w*1.5, this.player.h*0.8);
+       } else {
+          this.ctx.fillRect(this.player.x, this.player.y, this.player.w, this.player.h);
+       }
+       this.ctx.globalAlpha = 1.0;
+    }
+
+    this.ctx.restore();
+
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = '14px "JetBrains Mono", monospace';
+    this.ctx.fillText(`PROTOCOL: ${this.currentTheme.toUpperCase()} | SCORE: ${this.score} | ENEMIES: ${this.entities.length}`, 15, 25);
+    this.ctx.fillStyle = '#f00';
+    this.ctx.fillText(`HP: ${this.player.hp}/${this.player.maxHp}`, 15, 45);
+    
+    if (this.currentTheme === 'transformers') this.ctx.fillText(`[SHIFT] = Transform into Car`, 15, 65);
+    if (this.currentTheme === 'assassin') this.ctx.fillText(`Hide in green zones for stealth!`, 15, 65);
+
+    if (this.gamePhase === 'over') {
+       this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+       this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+       this.ctx.fillStyle = '#f00';
+       this.ctx.font = '24px "JetBrains Mono", monospace';
+       this.ctx.fillText('MISSION FAILED', this.canvas.width/2 - 90, 120);
+    }
+    if (this.gamePhase === 'win') {
+       this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+       this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+       this.ctx.fillStyle = '#0f0';
+       this.ctx.font = '24px "JetBrains Mono", monospace';
+       this.ctx.fillText('MISSION COMPLETE!', this.canvas.width/2 - 100, 120);
+    }
+  }
+}
+
+class TerminalUI {
+  constructor(engineInstance) {
+    this.modal = document.getElementById('console-modal');
+    this.window = document.querySelector('.console-window');
+    this.body = document.getElementById('console-body');
+    this.input = document.getElementById('console-input');
+    this.closeBtn = document.getElementById('close-console-btn');
+    this.openBtns = document.querySelectorAll('.open-console-trigger');
+    
+    this.engine = engineInstance;
+
+    if (this.modal && this.input) {
+      this.bindEvents();
+    }
+  }
+
+  bindEvents() {
+    this.openBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggle();
+      });
+    });
+
+    if (this.closeBtn) {
+      this.closeBtn.addEventListener('click', () => this.toggle());
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '`' || e.key === '~') {
+        e.preventDefault();
+        this.toggle();
+      } else if (e.key === 'Escape') {
+        if (this.engine.isGameActive) {
+          this.engine.stop();
+        } else if (this.modal.classList.contains('active')) {
+          this.toggle();
+        }
+      }
+    });
+
+    this.input.addEventListener('keydown', (e) => {
+      if (window.AnimusAudio) window.AnimusAudio.playTyping();
+      if (e.key === 'Enter') {
+        const val = this.input.value;
+        this.input.value = '';
+        this.handleCommand(val);
+      }
+    });
+  }
+
+  toggle() {
+    const isOpening = !this.modal.classList.contains('active');
+    if (isOpening) {
+      this.modal.classList.add('active');
+      if (this.window) this.window.classList.add('loading');
+      if (window.AnimusAudio) window.AnimusAudio.playSyncPulse();
+      
+      setTimeout(() => {
+        if (this.window) this.window.classList.remove('loading');
+        this.input.focus();
+      }, 600);
+    } else {
+      this.modal.classList.remove('active');
+      if (this.engine.isGameActive) this.engine.stop();
+    }
+  }
+
+  printLine(text, className = '') {
+    const p = document.createElement('p');
+    p.className = `console-line ${className}`;
+    p.innerHTML = text;
+    this.body.appendChild(p);
+    this.body.scrollTop = this.body.scrollHeight;
+  }
+
+  handleCommand(cmdRaw) {
+    const cmd = cmdRaw.trim().toLowerCase();
+    const primary = cmd.split(' ')[0];
+
+    this.printLine(`<span style="color: var(--cyan-energy)">SUBJECT@ANIMUS:~$</span> ${cmdRaw}`);
+    if (window.AnimusAudio) window.AnimusAudio.playClick();
+
+    switch (primary) {
+      case 'help':
+        this.printLine('==================================================', 'text-muted');
+        this.printLine('ANIMUS 2.0 SYSTEM COMMAND PROTOCOLS:');
+        this.printLine('  <span style="color: var(--cyan-energy)">bio</span> / <span style="color: var(--cyan-energy)">subject</span>  - Displays professional architect summary');
+        this.printLine('  <span style="color: var(--cyan-energy)">skills</span> [query]  - Queries technical skill matrix');
+        this.printLine('  <span style="color: var(--cyan-energy)">exp</span>             - Lists career memory sequence');
+        this.printLine('  <span style="color: var(--cyan-energy)">projects</span>        - Shows architectural node highlights');
+        this.printLine('  <span style="color: var(--cyan-energy)">contact</span>         - Transmission channels & contact info');
+        this.printLine('  <span style="color: var(--cyan-energy)">megaman</span> / <span style="color: var(--cyan-energy)">assassin</span> / <span style="color: var(--cyan-energy)">batman</span> / <span style="color: var(--cyan-energy)">transformers</span> / <span style="color: var(--cyan-energy)">pacificrim</span> / <span style="color: var(--cyan-energy)">crossover</span> - 🎮 Easter Eggs');
+        this.printLine('  <span style="color: var(--cyan-energy)">sync</span>            - Triggers memory re-sync sequence');
+        this.printLine('  <span style="color: var(--cyan-energy)">clear</span>           - Clears terminal output');
+        this.printLine('==================================================', 'text-muted');
+        break;
+
+      case 'bio':
+      case 'subject':
+        this.printLine('<strong>SUBJECT: BRAYAN ESTEVES</strong>');
+        this.printLine('ROLE: Software Architect | Backend & Distributed Systems Specialist');
+        this.printLine('LOCATION: Caracas, Venezuela');
+        this.printLine('EXPERIENCE: 11+ years Java/Backend, GCP/AWS, Clojure, Kafka, Solidity, .NET, Python, Node.js');
+        break;
+
+      case 'skills':
+        this.printLine('<strong>NEURAL SKILL MATRIX:</strong>');
+        this.printLine('- Backend: Java (Spring Boot, Quarkus), Clojure, Python (FastAPI, Django), .NET, Ruby, Solidity');
+        this.printLine('- Architecture: Event-Driven (Kafka 100+ topics), RxJava, Microservices, Hexagonal');
+        this.printLine('- Cloud & DevOps: GCP (GKE, Cloud SQL), AWS (Bedrock, Connect), Docker, Kubernetes, CI/CD');
+        this.printLine('- Databases: PostgreSQL, MongoDB, gRQL Graph Database Engine');
+        break;
+
+      case 'exp':
+        this.printLine('<strong>MEMORY SEQUENCE (EXPERIENCE):</strong>');
+        this.printLine('1. 2025: Monetae.io - Web3 Developer & Smart Contracts');
+        this.printLine('2. 2024-Pres: gRQL Engine - Interim Chief Technology Officer (CTO)');
+        this.printLine('3. 2025: Dinocloud - Senior FullStack AWS Solutions (Bedrock Multi-Agent)');
+        this.printLine('4. 2024-2025: Moveapps - Software Architect & Tech Lead (Toyota Chile)');
+        this.printLine('5. 2021-2025: Halcón Bit / Fenrirsoft - CEO, Founder & CTO');
+        break;
+
+      case 'contact':
+        this.printLine('<strong>TRANSMISSION CHANNELS:</strong>');
+        this.printLine('- WhatsApp: +584149904852');
+        this.printLine('- Email: brayan.esteves93@gmail.com');
+        this.printLine('- LinkedIn: linkedin.com/in/brayanesteves93');
+        this.printLine('- GitHub: github.com/brayanesteves');
+        break;
+
+      case 'megaman':
+      case 'mega':
+      case 'game':
+      case 'assassin':
+      case 'assassinscreed':
+      case 'batman':
+      case 'transformers':
+      case 'pacificrim':
+      case 'crossover':
+        this.printLine(`🚀 <span style="color: #00f0ff">LAUNCHING ${primary.toUpperCase()} PROTOCOL...</span>`);
+        this.engine.start(primary === 'assassinscreed' ? 'assassin' : primary);
+        break;
+
+      case 'sync':
+        this.printLine('Synchronizing memory fragments...', 'animus-pulse');
+        if (window.AnimusAudio) window.AnimusAudio.playSyncPulse();
+        break;
+
+      case 'clear':
+        this.body.innerHTML = '';
+        this.printLine('ANIMUS 2.0 CONSOLE [SYSTEM ONLINE]. Type <span style="color: var(--cyan-energy)">help</span> for protocols.');
+        break;
+
+      default:
+        if (cmd !== '') {
+          this.printLine(`Unrecognized command: '${cmd}'. Type <span style="color: var(--cyan-energy)">help</span>.`, 'text-muted');
+        }
+        break;
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const engine = new MultiverseEngine('megaman-canvas', 'megaman-arcade-wrap', 'close-megaman-btn');
+  const terminal = new TerminalUI(engine);
+  // Export facade for global access
+  window.TerminalInstance = terminal;
+});

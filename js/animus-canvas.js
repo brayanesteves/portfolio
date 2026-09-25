@@ -1,108 +1,120 @@
-/* ==========================================================================
-   ANIMUS 2.0 CANVAS BACKGROUND ENGINE
-   Renders subtle constellation nodes, faint dark grid streams, and parallax.
-   ========================================================================== */
+/**
+ * @file animus-canvas.js
+ * @description BackgroundMeshRenderer Class. Renders the interactive sci-fi constellation background.
+ */
 
-(function () {
-  const canvas = document.getElementById('animus-canvas');
-  if (!canvas) return;
+class BackgroundMeshRenderer {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
 
-  const ctx = canvas.getContext('2d');
-  let width, height;
-  let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
-  let nodes = [];
-
-  function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    initNodes();
+    this.ctx = this.canvas.getContext('2d');
+    this.width = 0;
+    this.height = 0;
+    this.mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    this.nodes = [];
+    
+    this.init();
   }
 
-  class ConstellationNode {
-    constructor() {
-      this.reset();
-    }
-
-    reset() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * height;
-      this.radius = Math.random() * 1.5 + 1;
-      this.vx = (Math.random() - 0.5) * 0.25;
-      this.vy = (Math.random() - 0.5) * 0.25;
-      this.alpha = Math.random() * 0.4 + 0.1;
-    }
-
-    update() {
-      this.x += this.vx + (mouse.x * 0.02);
-      this.y += this.vy + (mouse.y * 0.02);
-
-      if (this.x < -20) this.x = width + 20;
-      if (this.x > width + 20) this.x = -20;
-      if (this.y < -20) this.y = height + 20;
-      if (this.y > height + 20) this.y = -20;
-    }
-
-    draw() {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 240, 255, ${this.alpha * 0.6})`;
-      ctx.fill();
-    }
+  init() {
+    this.bindEvents();
+    this.resize();
+    this.animate();
   }
 
-  function initNodes() {
-    nodes = [];
-    const count = Math.floor((width * height) / 25000);
+  bindEvents() {
+    window.addEventListener('resize', () => this.resize());
+    window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+  }
+
+  handleMouseMove(e) {
+    this.mouse.targetX = (e.clientX - this.width / 2) * 0.2;
+    this.mouse.targetY = (e.clientY - this.height / 2) * 0.2;
+  }
+
+  resize() {
+    this.width = this.canvas.width = window.innerWidth;
+    this.height = this.canvas.height = window.innerHeight;
+    this.initNodes();
+  }
+
+  initNodes() {
+    this.nodes = [];
+    const count = Math.floor((this.width * this.height) / 25000);
     for (let i = 0; i < count; i++) {
-      nodes.push(new ConstellationNode());
+      this.nodes.push(this.createNode());
     }
   }
 
-  function drawConnections() {
+  createNode() {
+    return {
+      x: Math.random() * this.width,
+      y: Math.random() * this.height,
+      radius: Math.random() * 1.5 + 1,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      alpha: Math.random() * 0.4 + 0.1
+    };
+  }
+
+  updateNode(node) {
+    node.x += node.vx + (this.mouse.x * 0.02);
+    node.y += node.vy + (this.mouse.y * 0.02);
+
+    if (node.x < -20) node.x = this.width + 20;
+    if (node.x > this.width + 20) node.x = -20;
+    if (node.y < -20) node.y = this.height + 20;
+    if (node.y > this.height + 20) node.y = -20;
+  }
+
+  drawNode(node) {
+    this.ctx.beginPath();
+    this.ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+    this.ctx.fillStyle = `rgba(0, 240, 255, ${node.alpha * 0.6})`;
+    this.ctx.fill();
+  }
+
+  drawConnections() {
     const maxDist = 140;
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x;
-        const dy = nodes[i].y - nodes[j].y;
+    for (let i = 0; i < this.nodes.length; i++) {
+      for (let j = i + 1; j < this.nodes.length; j++) {
+        const dx = this.nodes[i].x - this.nodes[j].x;
+        const dy = this.nodes[i].y - this.nodes[j].y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < maxDist) {
           const alpha = (1 - dist / maxDist) * 0.08;
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.nodes[i].x, this.nodes[i].y);
+          this.ctx.lineTo(this.nodes[j].x, this.nodes[j].y);
+          this.ctx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+          this.ctx.lineWidth = 0.7;
+          this.ctx.stroke();
         }
       }
     }
   }
 
-  function animate() {
-    ctx.clearRect(0, 0, width, height);
+  animate() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
 
     // Smooth mouse damping
-    mouse.x += (mouse.targetX - mouse.x) * 0.05;
-    mouse.y += (mouse.targetY - mouse.y) * 0.05;
+    this.mouse.x += (this.mouse.targetX - this.mouse.x) * 0.05;
+    this.mouse.y += (this.mouse.targetY - this.mouse.y) * 0.05;
 
-    drawConnections();
+    this.drawConnections();
 
-    nodes.forEach(node => {
-      node.update();
-      node.draw();
+    this.nodes.forEach(node => {
+      this.updateNode(node);
+      this.drawNode(node);
     });
 
-    requestAnimationFrame(animate);
+    requestAnimationFrame(() => this.animate());
   }
+}
 
-  window.addEventListener('mousemove', (e) => {
-    mouse.targetX = (e.clientX - width / 2) * 0.2;
-    mouse.targetY = (e.clientY - height / 2) * 0.2;
-  });
-
-  window.addEventListener('resize', resize);
-
-  resize();
-  animate();
-})();
+// Auto-initialize background renderer when script loads
+document.addEventListener('DOMContentLoaded', () => {
+  new BackgroundMeshRenderer('animus-canvas');
+});

@@ -1,126 +1,81 @@
-/* ==========================================================================
-   ANIMUS 1.28 WEB AUDIO SYNTHESIZER
-   Generates authentic AC1 Animus sci-fi UI sound effects natively.
-   ========================================================================== */
+/**
+ * @file animus-audio.js
+ * @description AudioSystem Singleton Class. Generates synthesized sound effects.
+ */
 
-const AnimusAudio = (function () {
-  let audioCtx = null;
-  let isMuted = localStorage.getItem('animus_muted') === 'true';
+class AudioSystem {
+  constructor() {
+    if (AudioSystem.instance) {
+      return AudioSystem.instance;
+    }
+    this.audioCtx = null;
+    this.isMuted = localStorage.getItem('animus_muted') === 'true';
+    AudioSystem.instance = this;
+  }
 
-  function getAudioContext() {
-    if (!audioCtx) {
+  getAudioContext() {
+    if (!this.audioCtx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
+      this.audioCtx = new AudioContext();
     }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
     }
-    return audioCtx;
+    return this.audioCtx;
   }
 
-  function playHover() {
-    if (isMuted) return;
+  playOscillator(type, startFreq, endFreq, dur, vol) {
+    if (this.isMuted) return;
     try {
-      const ctx = getAudioContext();
+      const ctx = this.getAudioContext();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.05);
+      osc.type = type;
+      osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+      if (endFreq !== null) {
+        osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + dur);
+      }
 
-      gain.gain.setValueAtTime(0.015, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    } catch (e) {}
+      osc.stop(ctx.currentTime + dur);
+    } catch (e) {
+      console.warn("Audio Context Failed", e);
+    }
   }
 
-  function playClick() {
-    if (isMuted) return;
-    try {
-      const ctx = getAudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
-
-      gain.gain.setValueAtTime(0.04, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.08);
-    } catch (e) {}
+  playHover() {
+    this.playOscillator('sine', 800, 1400, 0.05, 0.015);
   }
 
-  function playSyncPulse() {
-    if (isMuted) return;
-    try {
-      const ctx = getAudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.35);
-
-      gain.gain.setValueAtTime(0.05, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.35);
-    } catch (e) {}
+  playClick() {
+    this.playOscillator('triangle', 1200, 400, 0.08, 0.04);
   }
 
-  function playTyping() {
-    if (isMuted) return;
-    try {
-      const ctx = getAudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(1800 + Math.random() * 400, ctx.currentTime);
-
-      gain.gain.setValueAtTime(0.008, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.03);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.03);
-    } catch (e) {}
+  playSyncPulse() {
+    this.playOscillator('sine', 200, 900, 0.35, 0.05);
   }
 
-  function toggleMute() {
-    isMuted = !isMuted;
-    localStorage.setItem('animus_muted', isMuted);
-    return isMuted;
+  playTyping() {
+    this.playOscillator('square', 1800 + Math.random() * 400, null, 0.03, 0.008);
   }
 
-  function getMuteState() {
-    return isMuted;
+  toggleMute() {
+    this.isMuted = !this.isMuted;
+    localStorage.setItem('animus_muted', this.isMuted);
+    return this.isMuted;
   }
 
-  return {
-    playHover,
-    playClick,
-    playSyncPulse,
-    playTyping,
-    toggleMute,
-    getMuteState
-  };
-})();
+  getMuteState() {
+    return this.isMuted;
+  }
+}
+
+// Export singleton instance globally (Facade Pattern)
+window.AnimusAudio = new AudioSystem();
